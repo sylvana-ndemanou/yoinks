@@ -1,95 +1,68 @@
-# yoinks
+# Perch 🐦
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-  <img src="assets/logo-light.svg" alt="yoinks" width="288">
-</picture>
+A macOS menu bar app that keeps an eye on your local AI agents.
 
-yoink any video. paste. yoink. done.
+Perch lives in your menu bar and aggregates every AI coding agent running on
+your Mac — **Claude Code**, **Cursor**, and any agent you add — so you can see
+what they're each doing at a glance and act on them without switching tools.
 
-Download videos from YouTube, X/Twitter, Instagram, Threads, TikTok and
-1,800+ other sites — right from your terminal. Paste a url, pick a
-resolution (or audio-only mp3), done. No popups, no fake download buttons,
-no sketchy redirects.
+## What it does
 
-<img src="assets/home.png" alt="yoinks home screen — paste a link and hit yoink" width="100%">
+- **See every agent in one place.** A single popover lists all your local
+  agents with their current task and live progress.
+- **Know when you're needed.** The menu bar icon flags when any agent is
+  blocked waiting on you (a permission prompt, a question), so you don't have to
+  babysit terminals.
+- **Take quick actions.** Approve or reject a request, interrupt a task, or send
+  a message to an agent — straight from the menu bar.
+- **Bring your own agents.** Claude Code and Cursor ship as built-in providers;
+  add more by implementing a small `AgentProvider`.
 
-## Install
+## Project layout
 
-```sh
-npm install -g yoinks
+```
+Sources/Perch/
+  PerchApp.swift            # @main app — the MenuBarExtra scene
+  Models/
+    Agent.swift             # Agent, AgentKind, AgentState
+    AgentAction.swift       # approve / reject / interrupt / send message
+  Services/
+    AgentProvider.swift     # protocol every integration implements
+    AgentStore.swift        # polls providers, merges + sorts agents
+    ClaudeCodeProvider.swift
+    CursorProvider.swift
+  Views/
+    MenuContentView.swift   # the popover
+    AgentRowView.swift      # one agent card + its quick actions
+Tests/PerchTests/           # unit tests for the store
 ```
 
-Or try it without installing anything:
+The provider implementations currently return representative sample data so the
+UI can be built and demoed end to end; wiring them up to the real tools is the
+next milestone (see the roadmap).
+
+## Requirements
+
+- macOS 13 (Ventura) or later — Perch uses SwiftUI's `MenuBarExtra`.
+- Xcode 15+ / Swift 5.9+.
+
+## Build & run
 
 ```sh
-npx yoinks
+swift build          # compile
+swift run Perch      # run the menu bar app
+swift test           # run the unit tests
 ```
 
-Requires Node 18+. Everything else (yt-dlp, ffmpeg) is fetched or bundled
-automatically.
+You can also open `Package.swift` in Xcode and run the `Perch` scheme.
 
-## Usage
-
-```sh
-$ yoinks https://youtu.be/dQw4w9WgXcQ    # straight to the format picker
-$ yoinks                                 # prompts for a url
-$ yoinks --theme light                   # force the light palette
-```
-
-yoinks takes over the terminal (full-screen, centered — and restores your
-scrollback on exit). Pick a format with ↑/↓ (or j/k, or number keys) and
-hit enter. `esc` goes back, `^c` quits. Or just use the mouse — the yoink
-button, the format list and the footer hints are all clickable, and
-clicking the logo takes you back home. Files are saved to `~/Downloads`,
-and the file path is printed to your terminal when you're done.
-
-The default `auto` theme uses your terminal's own foreground and background,
-so it follows light and dark terminal themes without guessing. Press `^t` or
-click the theme control in the footer to cycle through `auto`, `light`, and
-`dark` for the current session. Use `--theme auto`, `--theme light`, or
-`--theme dark` to choose the starting theme for one launch.
-
-<img src="assets/download-options.png" alt="yoinks format picker — resolutions with estimated file sizes, plus audio-only mp3" width="100%">
-
-## How it works
-
-- Powered by [yt-dlp](https://github.com/yt-dlp/yt-dlp). On first run,
-  yoinks downloads the standalone yt-dlp binary to `~/.yoinks/bin` —
-  no Python required. If you already have yt-dlp installed, it uses yours.
-- ffmpeg (needed for merging high-res streams and mp3 extraction) is found
-  on your PATH, with `ffmpeg-static` as a bundled fallback.
-- The UI is [Ink](https://github.com/vadimdemedes/ink) — React for the
-  terminal.
-
-## Development
-
-```sh
-npm install
-npm run build        # bundle to dist/ with tsup
-npm run dev          # rebuild on change
-node dist/cli.js <url>
-npm run typecheck
-```
-
-To try it as a global command without publishing: `npm link`, then run
-`yoinks` anywhere.
+> **Note:** to ship this as a proper menu-bar-only app (no Dock icon) you'll
+> want an app bundle with `LSUIElement = YES` in its `Info.plist`. That
+> packaging step is tracked in the roadmap.
 
 ## Roadmap
 
-- [ ] `--best` / `--mp3` flags to skip the picker (scriptable mode)
-- [ ] `-o <dir>` to choose the output folder
-- [ ] Playlist / thread-with-multiple-videos support
-- [ ] Clipboard detection: launch bare and auto-suggest the url you copied
-- [ ] Self-update for the bundled yt-dlp binary (`yt-dlp -U`)
-- [x] Publish to npm (`npm i -g yoinks` / `npx yoinks`)
-- [ ] `curl yoinks.sh | sh` installer
-
-## A note on fair use
-
-yoinks is a personal-archiving tool. Downloading content may violate a
-platform's terms of service — only download what you have the right to
-keep, and be excellent to creators.
+See [`ROADMAP.md`](ROADMAP.md).
 
 ## License
 
